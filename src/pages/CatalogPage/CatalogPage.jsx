@@ -15,6 +15,7 @@ const CatalogPage = () => {
   const [sorted, setSorted] = useState("price")
   const [postsOffset, setPostsOffset] = useState(0); // с какого продукта начинать
   const postsPerPage = 4
+  const [forcePage, setForcePage] = useState(0)
   const [gridView, setGridView] = useState(true)
 
   const endOffset = postsOffset + postsPerPage; // число до которого нам нужно продвинуть
@@ -25,6 +26,7 @@ const CatalogPage = () => {
   const handlePageClick = (event) => {
     const newOffset = event.selected * postsPerPage
     setPostsOffset(newOffset);
+    setForcePage(event.selected)
   };
 
   
@@ -56,29 +58,29 @@ const CatalogPage = () => {
           const sortedPosts = [...posts].sort((a,b) => new Date(a.createdAt) - new Date(b.createdAt))
           setPosts(sortedPosts)
         }
+        setForcePage(0)
+        setPostsOffset(0)
   },[sorted])
   console.log(posts)
 
-    const handleChangeGridView = ( value ) => {
-      setGridView(value)
-    }
+
 
   return (
     <div>
       <Breadcrumbs  />
       <Filter setSorted={setSorted} sorted={sorted}
-              handleChangeGridView={handleChangeGridView}
+              setGridView={setGridView}
       />
       <div className={styles["products-wrapper"]}>
         {currentPosts.map(product => {
           return (
             <Product 
-            gridView={gridView}
             key={product._id}
             img={product.img}
             title={product.title}
             price={product.price}
             date={product.createdAt}
+            gridView={gridView}
             />
           ) 
         })}
@@ -89,8 +91,13 @@ const CatalogPage = () => {
         onPageChange={handlePageClick}
         pageRangeDisplayed={5}
         pageCount={pageCount}
-        previousLabel="< previous"
+        previousLabel=""
         renderOnZeroPageCount={null}
+        containerClassName={styles["pagination-wrapper"]}
+        pageLinkClassName={styles["pagination-page"]}
+        nextClassName={styles["pagination-next"]}
+        activeLinkClassName={styles["pagination-active"]}
+        forcePage={forcePage}
       />
       <Info />
     </div>

@@ -10,12 +10,14 @@ const Filter = (props) => {
                 <div className={styles["icon-wrapper"]}>
                     <img src="/images/filter-icon.png" alt="" />
                     <p className={styles["filter-text"]}>Filter</p>
+                    <button>
                     <img src="/images/grid-view-icon.png" alt=""
-                        onClick={() => props.setGridView(true)}
-                    />
+                        onClick={() => props.setGridView(true)}/>
+                        </button>
+                    <button>    
                     <img src="/images/list-view-icon.png" alt=""
-                        onClick={() => props.setGridView(false)}
-                    />
+                        onClick={() => props.setGridView(false)}/>
+                        </button>
                     <p className={styles["amount-text"]}>Showing 1-16 of 32 results</p>
                 </div>
                 <div className={styles.controls}>
