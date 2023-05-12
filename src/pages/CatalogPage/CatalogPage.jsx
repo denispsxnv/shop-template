@@ -1,93 +1,87 @@
-import React from 'react';
+import React, { useState, useEffect } from "react";
 import Breadcrumbs from '../../components/Breadcrumbs/Breadcrumbs';
 import Filter from '../../components/Filter/Filter';
 import Info from '../../components/Info/Info';
 import Product from '../../components/Product/Product';
 import styles from './catalogpage.module.css'
-import postsService from '../../services/posts';
-import { useState } from 'react';
-import { useEffect } from 'react';
+import servicesApi from "../../services/products";
 import ReactPaginate from 'react-paginate';
 
-
-const CatalogPage = () => {
-  const [posts, setPosts] = useState([])
-  const [sorted, setSorted] = useState("price")
-  const [postsOffset, setPostsOffset] = useState(0); // с какого продукта начинать
-  const postsPerPage = 4
-  const [forcePage, setForcePage] = useState(0)
+const CatalogPage = (props) => {
+  const [products, setProducts] = useState([]);
+  const [sorted, setSorted] = useState('priceAsc')
+  const [productOffset, setProductOffset] = useState(0); // с кокого продукта начинать
+  const productsPerPage = 4
   const [gridView, setGridView] = useState(true)
-
-  const endOffset = postsOffset + postsPerPage; // число до которого нам нужно продвинуть
-  console.log(`Loading post from ${postsOffset} to ${endOffset}`);  
-  const currentPosts = posts.slice(postsOffset, endOffset)
-  const pageCount = Math.ceil(posts.length / postsPerPage);  //количесво страниц 
+  const [forcePage, setForcePage] = useState(0)
 
   const handlePageClick = (event) => {
-    const newOffset = event.selected * postsPerPage
-    setPostsOffset(newOffset);
+    const newOffset = event.selected * productsPerPage;
+    setProductOffset(newOffset);
     setForcePage(event.selected)
   };
 
+  const endOffset = productOffset + productsPerPage; // число до которого нам нужно роказывать продукт
+  console.log(`Loading items from ${productOffset} to ${endOffset}`);
+  const currentProducts = products.slice(productOffset, endOffset); //product.slice(0,4) - [0,1,2,3]
+  const pageCount = Math.ceil(products.length / productsPerPage); // кол-во страниц
+
+  useEffect(() => {
+    servicesApi.getProducts()
+      .then(res => {
+        const sortedProducts = res.data.sort((a, b) => a.price - b.price)
+        setProducts(sortedProducts) 
+      })
+      .catch(err => console.log(err.response.data))
+  }, []);
   
   useEffect(() => {
-    postsService
-    .get().then(res => {
-      const sortedPosts = res.data.sort((a,b) => a.price - b.price)
-      setPosts(res.data)
-    })
-    .catch(err => console.log(err.response.data))
-  }, [])
-
-  useEffect(() => {
-    if (sorted == "price") {
-    const sortedPosts = [...posts].sort((a,b) => a.price - b.price)
-    setPosts(sortedPosts)
-    console.log("price")
-    } else {
-      const sortedPosts = [...posts].sort((a,b) => b.price - a.price)
-      setPosts(sortedPosts)
-    }  
-    
-    if (sorted == "newest") {
-      const sortedPosts = [...posts].sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt))
-      setPosts(sortedPosts)
-      console.log("po date")
-        } 
-        if(sorted == "newestDesc") {
-          const sortedPosts = [...posts].sort((a,b) => new Date(a.createdAt) - new Date(b.createdAt))
-          setPosts(sortedPosts)
-        }
-        setForcePage(0)
-        setPostsOffset(0)
+    if(sorted === 'priceAsc') {
+      const sortedProducts = [...products].sort((a, b) => a.price - b.price)
+      setProducts(sortedProducts) 
+    }if(sorted === 'newestAsc') {
+      const sortedNewest = [...products].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      setProducts(sortedNewest)
+    }
+    if(sorted === 'priceDesc') {
+      const sortedProducts = [...products].sort((a, b) => b.price - a.price)
+      setProducts(sortedProducts) 
+    }if(sorted === 'newestDesc') {
+      const sortedNewest = [...products].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+      setProducts(sortedNewest)
+    }
+    setForcePage(0)
+    setProductOffset(0)
   },[sorted])
-  console.log(posts)
-
-
 
   return (
     <div>
       <Breadcrumbs  />
       <Filter setSorted={setSorted} sorted={sorted}
-              setGridView={setGridView}
+        setGridView={setGridView} gridView={gridView}
       />
       <div className={styles["products-wrapper"]}>
-        {currentPosts.map(product => {
-          return (
-            <Product 
-            key={product._id}
-            img={product.img}
-            title={product.title}
-            price={product.price}
-            date={product.createdAt}
-            gridView={gridView}
-            />
-          ) 
-        })}
+      {currentProducts.map(product => {
+        const dateString = product.createdAt;
+        const date = new Date(dateString);
+        const options = { day: 'numeric', month: 'short', year: 'numeric' };
+        const formattedDate = date.toLocaleDateString('en-US', options);
+        return (
+        <Product
+          gridView={gridView}
+          key={product._id}
+          img={product.img}
+          date={formattedDate}
+          title={product.title}
+          id={product._id}
+          price={product.price}
+        />
+        );
+      })}
       </div>
       <ReactPaginate
         breakLabel="..."
-        nextLabel="next >"
+        nextLabel="Next"
         onPageChange={handlePageClick}
         pageRangeDisplayed={5}
         pageCount={pageCount}

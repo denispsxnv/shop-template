@@ -1,39 +1,35 @@
-import React from "react";
-import { useState } from "react";
-import { authServices } from "../../services/auth"
+import React, { useState } from 'react';
+import { rootApi } from "../../api"
+import axios from "axios";
 
 const RegisterForm = ({ styles }) => {
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [username, setUserName] = useState("")
 
-  const [registerData, setRegisterData] = useState({
-    email: "",
-    username: '',
-    password: ''
-  })
+  const authServices = () => {
+    const registration = (userData) => {
+      return axios.post(`${rootApi}/register`, userData);
+    };
 
-  const { registration } = authServices()
+    const handleSubmit = async (event) => {
+      event.preventDefault();
+      const userData = { email, password, username };
+      try {
+        const response = await registration(userData);
+        console.log(response.data);
+      } catch (error) {
+        console.log(error.response.data);
+      }
+    };
 
-  const handleChangeRegisterData = (e) => {
-    setRegisterData({ ...registerData, [e.target.name]: e.target.value })
-  }
-  console.log(registerData)
-
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    registration(registerData)
-      .then((data) => {
-        setRegisterData({
-          email: "",
-          username: '',
-          password: ''
-        })
-      })
-      .catch((err) => {
-        console.log(err)
-      })
-  }
-
+    return {
+      registration,
+      handleSubmit,
+    }
+  };
   return (
-    <form className={styles.form} onSubmit={handleSubmit  }>
+    <form className={styles.form} onSubmit={authServices().handleSubmit}>
       <h2 className={styles.title}>Register</h2>
       <div className={styles.control}>
         <label htmlFor="email" className={styles.label}>
@@ -41,42 +37,37 @@ const RegisterForm = ({ styles }) => {
         </label>
         <input
           type="email"
-          id={"email"}
           placeholder="email"
           name="email"
           className={styles.input}
-          onChange={handleChangeRegisterData}
-          value={registerData.email}
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
         />
       </div>
-
-      <div className={styles.control}>
-        <label htmlFor="userame" className={styles.label}>
-          username
-        </label>
-        <input
-          type="text"
-          id={"username"}
-          placeholder="User name"
-          name="username"
-          className={styles.input}
-          onChange={handleChangeRegisterData}
-          value={registerData.username}
-        />
-      </div>
-
       <div className={styles.control}>
         <label htmlFor="password" className={styles.label}>
           Password
         </label>
         <input
           type="password"
-          id={"password"}
-          placeholder="pass"
+          placeholder="password"
           name="password"
           className={styles.input}
-          onChange={handleChangeRegisterData}
-          value={registerData.password}
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
+        />
+      </div>
+      <div className={styles.control}>
+        <label htmlFor="text" className={styles.label}>
+          Login
+        </label>
+        <input
+          type="text"
+          placeholder="login"
+          name="login"
+          className={styles.input}
+          value={username}
+          onChange={(event) => setUserName(event.target.value)}
         />
       </div>
       <input type="submit" value="Register" className={styles.submit} />
